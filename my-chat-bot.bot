@@ -1,0 +1,16 @@
+{
+    "name": "my-chat-bot",
+    "description": "",
+    "services": [
+        {
+            "type": "endpoint",
+            "endpoint": "http://localhost:3978/api/messages",
+            "name": "development",
+            "id": "65"
+        }
+    ],
+    "padlock": "",
+    "version": "2.0",
+    "path": "D:\\GitHub\\my-chat-bot\\my-chat-bot.bot",
+    "overrides": null
+}
