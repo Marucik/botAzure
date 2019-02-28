@@ -104,9 +104,8 @@ class MyBot {
             let check = turnContext.activity.text.toLowerCase();
 
             if (check === '/main') {
-                // await cpd.context.sendActivity('Dialog interupted');
-                // await cs.context.sendActivity('Dialog interupted');
-                // await dcrs.context.sendActivity('Dialog interupted');
+                this.iterator = 0;
+
                 if (dc.activeDialog) {
                     await dc.context.sendActivity('Dialog interupted');
                 }
