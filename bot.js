@@ -1,8 +1,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
 
-const { ActivityTypes } = require('botbuilder');
+const { ActivityTypes, CardFactory } = require('botbuilder');
 const { DialogSet, WaterfallDialog, TextPrompt, ChoicePrompt, DialogTurnStatus } = require('botbuilder-dialogs');
+// const { cardFactory } = require('adaptivecards');
 // const fetch = require('node-fetch');
 const course = require('./course');
 
@@ -29,7 +30,7 @@ const SEARCH_COURSE_ACCESSOR = 'serachCourseAccesor';
 const DISPLAY_COURSE_ACCESSOR = 'displayCourseAccesor';
 
 class MyBot {
-    constructor(userState, conversationState) {
+    constructor(userState, conversationState, cardFactory) {
         this.iterator = 0;
         this.content = course;
 
@@ -44,6 +45,7 @@ class MyBot {
 
         this.conversationState = conversationState;
         this.userState = userState;
+        // this.cardFactory = cardFactory;
 
         this.userInfoDialog = new DialogSet(this.dialogStateAccessor);
         this.userInfoDialog.add(new ChoicePrompt(LANGUAGE_PROMPT));
@@ -96,6 +98,15 @@ class MyBot {
             const cs = await this.searchCoursekDialog.createContext(turnContext);
             const dcrs = await this.displayCourseDialog.createContext(turnContext);
 
+            let check = turnContext.activity.text.toLowerCase();
+
+            if (check === '/main') {
+                dc.cancelAllDialogs();
+                cpd.cancelAllDialogs();
+                cs.cancelAllDialogs();
+                dcrs.cancelAllDialogs();
+            }
+
             if (!dc.activeDialog) {
                 // If there is no active dialog, check whether we have a reservation yet.
                 if (!info && !userProfile) {
@@ -122,6 +133,7 @@ class MyBot {
                         `and location: ${ dialogTurnResult.result.location } `);
                     await turnContext.sendActivity('Now you can test some commands:' +
                                                     '\n/courses - Display courses list' +
+                                                    '\n/main - Stops conversation end return to start' +
                                                     '\n/search - Searching for courses');
                 }
             }
@@ -166,6 +178,8 @@ class MyBot {
                 case 'search':
                     await cs.beginDialog(SEARCH_COURSE_DIALOG);
                     break;
+                case 'main':
+                    break;
                 default:
                     await turnContext.sendActivity("Can't find any activities under this command");
                     break;
@@ -190,7 +204,7 @@ class MyBot {
     async promptForLanguage(stepContext) {
         return await stepContext.prompt(LANGUAGE_PROMPT, {
             prompt: 'Please choose a language(there is more to come).',
-            retryPrompt: 'Sorry, please choose a location from the list.',
+            retryPrompt: 'Choose language from list',
             choices: ['English']
         });
     }
@@ -217,7 +231,7 @@ class MyBot {
     async promptForSection(stepContext) {
         return await stepContext.prompt(SECTION_PROMPT, {
             prompt: 'Please choose a section(there is more to come).',
-            retryPrompt: 'Sorry, please choose a location from the list.',
+            retryPrompt: 'Choose data from list',
             choices: ['IT & Computer Science', 'Languages', 'Formal Sciences', 'Earth & Space', 'Health']
         });
     }
@@ -230,31 +244,31 @@ class MyBot {
         case 'IT & Computer Science':
             return await stepContext.prompt(TOPIC_PROMPT, {
                 prompt: 'Please choose a topic(there is more to come).',
-                retryPrompt: 'Sorry, please choose a location from the list.',
+                retryPrompt: 'Choose data from list',
                 choices: ['Python', 'Java#', 'Web Development', 'C++', 'Alghoritms', 'Network', 'Cloud Computing', 'Data Science', 'Databases']
             });
         case 'Languages':
             return await stepContext.prompt(TOPIC_PROMPT, {
                 prompt: 'Please choose a topic(there is more to come).',
-                retryPrompt: 'Sorry, please choose a location from the list.',
+                retryPrompt: 'Choose data from list',
                 choices: ['English', 'French', 'Spanish', 'Arabic', 'German', 'Gramar', 'Reading']
             });
         case 'Formal Sciences':
             return await stepContext.prompt(TOPIC_PROMPT, {
                 prompt: 'Please choose a topic(there is more to come).',
-                retryPrompt: 'Sorry, please choose a location from the list.',
+                retryPrompt: 'Choose data from list',
                 choices: ['Mathematics', 'Statistics', 'Logic', 'Algebra']
             });
         case 'Earth & Space':
             return await stepContext.prompt(TOPIC_PROMPT, {
                 prompt: 'Please choose a topic(there is more to come).',
-                retryPrompt: 'Sorry, please choose a location from the list.',
+                retryPrompt: 'Choose data from list',
                 choices: ['Astronomy', 'Geology', 'Geosicence', 'Planetary science']
             });
         case 'Health':
             return await stepContext.prompt(TOPIC_PROMPT, {
                 prompt: 'Please choose a topic(there is more to come).',
-                retryPrompt: 'Sorry, please choose a location from the list.',
+                retryPrompt: 'Choose data from list',
                 choices: ['First Aid', 'Mental Health', 'Dieting', 'Animal Healt']
             });
         default:
@@ -262,7 +276,7 @@ class MyBot {
         }
         return await stepContext.prompt(TOPIC_PROMPT, {
             prompt: 'Please choose a topic(there is more to come).',
-            retryPrompt: 'Sorry, please choose a location from the list.',
+            retryPrompt: 'Choose data from list',
             choices: ['PYTHON', 'C#', 'C++', 'JavaScript', 'Java']
         });
     }
@@ -272,7 +286,7 @@ class MyBot {
 
         return await stepContext.prompt(COURSE_PROMPT, {
             prompt: 'Please choose a course(there is more to come).',
-            retryPrompt: 'Sorry, please choose a location from the list.',
+            retryPrompt: 'Choose data from list',
             choices: ['Python: Execute a script', 'Python: variables']
         });
     }
@@ -300,7 +314,7 @@ class MyBot {
 
         return await stepContext.prompt(COURSE_PROMPT, {
             prompt: 'Please choose a course(there is more to come).',
-            retryPrompt: 'Sorry, please choose a location from the list.',
+            retryPrompt: 'Choose data from list',
             choices: ['Python: Execute a script', 'Python: variables']
         });
     }
@@ -315,7 +329,27 @@ class MyBot {
     }
 
     async displayCourse(stepContext) {
-        await stepContext.context.sendActivity(`${ this.content[this.iterator] }`);
+        if (typeof (this.content[this.iterator]) === 'object') {
+            if (!stepContext.options.display === true) {
+                return await stepContext.prompt(NAVIGATION_PROMPT, {
+                    prompt: 'Dou you want to display image? [5Kb]?',
+                    retryPrompt: '',
+                    choices: ['Yes', 'No']
+                });
+            } else {
+                const img = require('./img.json');
+                await stepContext.context.sendActivity({
+                    attachments: [CardFactory.adaptiveCard(img)]
+                });
+                return await stepContext.prompt(NAVIGATION_PROMPT, {
+                    prompt: '',
+                    retryPrompt: '',
+                    choices: ['<<<Previous', 'Next>>>']
+                });
+            }
+        } else {
+            await stepContext.context.sendActivity(`${ this.content[this.iterator] }`);
+        }
 
         return await stepContext.prompt(NAVIGATION_PROMPT, {
             prompt: '',
@@ -330,12 +364,26 @@ class MyBot {
             return await stepContext.endDialog();
         }
 
+        if (stepContext.result.value === 'Yes') {
+            return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG, { display: true });
+        }
+
+        if (stepContext.result.value === 'No') {
+            this.iterator++;
+            return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
+        }
+
         if (stepContext.result.value === '<<<Previous') {
             if (this.iterator === 0) {
                 return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
             } else {
-                this.iterator--;
-                return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
+                if (typeof (this.content[this.iterator - 1]) === 'object') {
+                    this.iterator = this.iterator - 2;
+                    return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
+                } else {
+                    this.iterator--;
+                    return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
+                }
             }
         }
 
