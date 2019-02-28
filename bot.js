@@ -21,6 +21,7 @@ const DISPLAY_COURSE_DIALOG = 'displayCourseDialog';
 
 const SERACH_PROMPT = 'serachPrompt';
 const LANGUAGE_PROMPT = 'languagePrompt';
+const AGE_PROMPT = 'agePrompt';
 const LOCATION_PROMPT = 'locationPrompt';
 const SECTION_PROMPT = 'sectionPrompt';
 const TOPIC_PROMPT = 'topicPrompt';
@@ -53,10 +54,12 @@ class MyBot {
         this.userInfoDialog = new DialogSet(this.dialogStateAccessor);
         this.userInfoDialog.add(new ChoicePrompt(LANGUAGE_PROMPT));
         this.userInfoDialog.add(new TextPrompt(LOCATION_PROMPT));
+        this.userInfoDialog.add(new TextPrompt(AGE_PROMPT));
 
         this.userInfoDialog.add(new WaterfallDialog(USER_INFO_DIALOG, [
             this.promptForLanguage.bind(this),
             this.promptForLocation.bind(this),
+            this.promptForAge.bind(this),
             this.endUserFetch.bind(this)
         ]));
 
@@ -147,7 +150,8 @@ class MyBot {
                     // Send a confirmation message to the user.
                     await turnContext.sendActivity(
                         `Your language is ${ dialogTurnResult.result.language } ` +
-                        `and location: ${ dialogTurnResult.result.location } `);
+                        `, age ${ dialogTurnResult.result.age } ` +
+                        ` and location: ${ dialogTurnResult.result.location } `);
                     await turnContext.sendActivity('Now you can test some commands\n' +
                                                     '/main - Stops conversation end return to start\n' +
                                                     '/help - Display help prompt\n' +
@@ -244,14 +248,23 @@ class MyBot {
         });
     }
 
-    async endUserFetch(stepContext) {
+    async promptForAge(stepContext) {
         stepContext.values.location = stepContext.result;
+
+        return await stepContext.prompt(LOCATION_PROMPT, {
+            prompt: 'How old are you? (Type below)'
+        });
+    }
+
+    async endUserFetch(stepContext) {
+        stepContext.values.age = stepContext.result;
 
         await stepContext.context.sendActivity('Thank You for answers');
 
         return await stepContext.endDialog({
             language: stepContext.values.language.value,
-            location: stepContext.values.location
+            location: stepContext.values.location,
+            age: stepContext.values.age
         });
     }
 

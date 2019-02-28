@@ -30,7 +30,24 @@ let content = [
     >>> py_compile.compile('my_first_simple_script.py')\n
     >>> \n
     or using the following command at the shell prompt\n
-    python -m py_compile my_first_simple_script.py`
+    python -m py_compile my_first_simple_script.py`,
+    `
+    a = 3, b = 5. 
+    c = a*b
+    c = ?
+    `,
+    `
+    For the following code, which of the following statements is true?
+
+    def printHello();;
+        print("Hello")     
+    a = printHello()
+
+    a) printHello() is a function and a is a variable. None of them are objects.
+    b) Both printHello() and a refer to the same object.
+    c) printHello() and a refer to different objects.
+    d) Syntax error! You cannot assign function to a variable in Python.
+    `
 ];
 
 module.exports = content;
