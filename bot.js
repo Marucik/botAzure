@@ -6,6 +6,9 @@ const { DialogSet, WaterfallDialog, TextPrompt, ChoicePrompt, DialogTurnStatus }
 // const { cardFactory } = require('adaptivecards');
 // const fetch = require('node-fetch');
 const course = require('./course');
+const course1 = require('./course1');
+
+const courses = [ course, course1 ];
 
 const DIALOG_STATE_ACCESSOR = 'dialogStateAccessor';
 const USER_INFO_ACCESOR = 'userInfoAccesor';
@@ -32,7 +35,7 @@ const DISPLAY_COURSE_ACCESSOR = 'displayCourseAccesor';
 class MyBot {
     constructor(userState, conversationState, cardFactory) {
         this.iterator = 0;
-        this.content = course;
+        this.courses = courses;
 
         this.dialogStateAccessor = conversationState.createProperty(DIALOG_STATE_ACCESSOR);
         this.courseStateAccessor = conversationState.createProperty(COURSE_STATE_ACCESSOR);
@@ -142,7 +145,7 @@ class MyBot {
                 const dialogTurnResult = await dcrs.continueDialog();
 
                 if (dialogTurnResult.status === DialogTurnStatus.complete) {
-                    turnContext.sendActivity('Course ended');
+                    turnContext.sendActivity('Course ended, redirecting to main and listening for commands');
                 }
             }
 
@@ -153,6 +156,7 @@ class MyBot {
                     await this.courseInfoAccessor.set(
                         turnContext,
                         dialogTurnResult.result);
+                    await this.conversationState.saveChanges(turnContext, false);
                     await dcrs.beginDialog(DISPLAY_COURSE_DIALOG);
                 }
             }
@@ -164,6 +168,7 @@ class MyBot {
                     await this.searchCourseAccessor.set(
                         turnContext,
                         dialogTurnResult.result);
+                    await this.conversationState.saveChanges(turnContext, false);
                     await dcrs.beginDialog(DISPLAY_COURSE_DIALOG);
                 }
             }
@@ -287,7 +292,7 @@ class MyBot {
         return await stepContext.prompt(COURSE_PROMPT, {
             prompt: 'Please choose a course(there is more to come).',
             retryPrompt: 'Choose data from list',
-            choices: ['Python: Execute a script', 'Python: variables']
+            choices: ['Python: Execute a script', 'Python: interactive shell']
         });
     }
 
@@ -324,12 +329,14 @@ class MyBot {
         await stepContext.context.sendActivity(`Your choosen course is: ${ stepContext.values.search }`);
 
         return await stepContext.endDialog({
-            search: stepContext.values.search.value
+            search: stepContext.values.search.value,
+            courseIndex: stepContext.result.index
         });
     }
 
     async displayCourse(stepContext) {
-        if (typeof (this.content[this.iterator]) === 'object') {
+        const index = this.searchCourseAccessor.get();
+        if (typeof (this.courses[this.searchCourseAccessor.index][this.iterator]) === 'object') {
             if (!stepContext.options.display === true) {
                 return await stepContext.prompt(NAVIGATION_PROMPT, {
                     prompt: 'Dou you want to display image? [5Kb]?',
@@ -348,7 +355,7 @@ class MyBot {
                 });
             }
         } else {
-            await stepContext.context.sendActivity(`${ this.content[this.iterator] }`);
+            await stepContext.context.sendActivity(`${ this.courses[this.searchCourseAccessor.index][this.iterator] }`);
         }
 
         return await stepContext.prompt(NAVIGATION_PROMPT, {
@@ -359,7 +366,7 @@ class MyBot {
     }
 
     async loopCourse(stepContext) {
-        if (this.iterator === this.content.length - 1) {
+        if (this.iterator === this.courses[this.searchCourseAccessor.index].length - 1) {
             this.iterator = 0;
             return await stepContext.endDialog();
         }
@@ -377,7 +384,7 @@ class MyBot {
             if (this.iterator === 0) {
                 return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
             } else {
-                if (typeof (this.content[this.iterator - 1]) === 'object') {
+                if (typeof (this.courses[this.searchCourseAccessor.index][this.iterator - 1]) === 'object') {
                     this.iterator = this.iterator - 2;
                     return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
                 } else {
@@ -388,7 +395,7 @@ class MyBot {
         }
 
         if (stepContext.result.value === 'Next>>>') {
-            if (this.iterator === this.content.length - 1) {
+            if (this.iterator === this.courses[this.searchCourseAccessor.index].length - 1) {
                 this.iterator = 0;
                 return await stepContext.endDialog();
             } else {
@@ -403,7 +410,7 @@ class MyBot {
             for (let idx in turnContext.activity.membersAdded) {
                 if (turnContext.activity.membersAdded[idx].id !== turnContext.activity.recipient.id) {
                     const userProfile = await this.userProfile.get(turnContext, null);
-                    await turnContext.sendActivity(`Welcome to sampleBot. To start conversation type 'hi'`);
+                    await turnContext.sendActivity(`Welcome to KoyaBot. To start conversation type 'hi'`);
                     if (userProfile) {
                         await turnContext.sendActivity(`Your choosen languege is ${ userProfile.language }`);
                     }
