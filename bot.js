@@ -149,11 +149,11 @@ class MyBot {
                     await turnContext.sendActivity(
                         `Your language is ${ dialogTurnResult.result.language } ` +
                         `and location: ${ dialogTurnResult.result.location } `);
-                    await turnContext.sendActivity('Now you can test some commands:' +
-                                                    '\n/main - Stops conversation end return to start' +
-                                                    '\n/help - Display help prompt' +
-                                                    '\n/courses - Display courses list' +
-                                                    '\n/search - Searching for courses');
+                    await turnContext.sendActivity('Now you can test some commands\n' +
+                                                    '/main - Stops conversation end return to start\n' +
+                                                    '/help - Display help prompt\n' +
+                                                    '/courses - Display courses list\n' +
+                                                    '/search - Searching for courses\n');
                 }
             }
 
@@ -202,11 +202,11 @@ class MyBot {
                 case 'main':
                     break;
                 case 'help':
-                    await turnContext.sendActivity('Now you can test some commands:' +
-                        '\n/main - Stops conversation end return to start' +
-                        '\n/help - Display help prompt' +
-                        '\n/courses - Display courses list' +
-                        '\n/search - Searching for courses');
+                    await turnContext.sendActivity('Now you can test some commands:\n' +
+                        '/main - Stops conversation end return to start\n' +
+                        '/help - Display help prompt\n' +
+                        '/courses - Display courses list\n' +
+                        '/search - Searching for courses\n');
                     break;
                 default:
                     await turnContext.sendActivity("Can't find any activities under this command");
@@ -364,7 +364,7 @@ class MyBot {
             if (!stepContext.options.display === true) {
                 return await stepContext.prompt(NAVIGATION_PROMPT, {
                     prompt: 'Dou you want to display image? [5Kb]?',
-                    retryPrompt: '',
+                    retryPrompt: 'Answer with button',
                     choices: ['Yes', 'No']
                 });
             } else {
@@ -373,8 +373,8 @@ class MyBot {
                     attachments: [CardFactory.adaptiveCard(img)]
                 });
                 return await stepContext.prompt(NAVIGATION_PROMPT, {
-                    prompt: '',
-                    retryPrompt: '',
+                    prompt: 'Choose step',
+                    retryPrompt: 'Choose step form button',
                     choices: ['<<<Previous', 'Next>>>']
                 });
             }
