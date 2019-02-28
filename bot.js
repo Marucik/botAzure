@@ -36,6 +36,7 @@ class MyBot {
     constructor(userState, conversationState, cardFactory) {
         this.iterator = 0;
         this.courses = courses;
+        this.courseSelect = 0;
 
         this.dialogStateAccessor = conversationState.createProperty(DIALOG_STATE_ACCESSOR);
         this.courseStateAccessor = conversationState.createProperty(COURSE_STATE_ACCESSOR);
@@ -48,7 +49,6 @@ class MyBot {
 
         this.conversationState = conversationState;
         this.userState = userState;
-        // this.cardFactory = cardFactory;
 
         this.userInfoDialog = new DialogSet(this.dialogStateAccessor);
         this.userInfoDialog.add(new ChoicePrompt(LANGUAGE_PROMPT));
@@ -323,6 +323,7 @@ class MyBot {
         stepContext.values.course = stepContext.result.value;
 
         await stepContext.context.sendActivity(`Your choosen course is: ${ stepContext.values.course }`);
+        this.courseSelect = stepContext.result.index;
 
         return await stepContext.endDialog({
             section: stepContext.values.section.value,
@@ -350,7 +351,7 @@ class MyBot {
     async summarizeSearch(stepContext) {
         stepContext.values.search = stepContext.result.value;
         await stepContext.context.sendActivity(`Your choosen course is: ${ stepContext.values.search }`);
-
+        this.courseSelect = stepContext.result.index;
         return await stepContext.endDialog({
             search: stepContext.values.search.value,
             courseIndex: stepContext.result.index
@@ -358,8 +359,8 @@ class MyBot {
     }
 
     async displayCourse(stepContext) {
-        const index = this.searchCourseAccessor.get();
-        if (typeof (this.courses[this.searchCourseAccessor.index][this.iterator]) === 'object') {
+        // const index = this.searchCourseAccessor.get();
+        if (typeof (this.courses[this.courseSelect][this.iterator]) === 'object') {
             if (!stepContext.options.display === true) {
                 return await stepContext.prompt(NAVIGATION_PROMPT, {
                     prompt: 'Dou you want to display image? [5Kb]?',
@@ -378,7 +379,7 @@ class MyBot {
                 });
             }
         } else {
-            await stepContext.context.sendActivity(`${ this.courses[this.searchCourseAccessor.index][this.iterator] }`);
+            await stepContext.context.sendActivity(`${ this.courses[this.courseSelect][this.iterator] }`);
         }
 
         return await stepContext.prompt(NAVIGATION_PROMPT, {
@@ -389,7 +390,7 @@ class MyBot {
     }
 
     async loopCourse(stepContext) {
-        if (this.iterator === this.courses[this.searchCourseAccessor.index].length - 1) {
+        if (this.iterator === this.courses[this.courseSelect].length - 1) {
             this.iterator = 0;
             return await stepContext.endDialog();
         }
@@ -407,7 +408,7 @@ class MyBot {
             if (this.iterator === 0) {
                 return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
             } else {
-                if (typeof (this.courses[this.searchCourseAccessor.index][this.iterator - 1]) === 'object') {
+                if (typeof (this.courses[this.courseSelect][this.iterator - 1]) === 'object') {
                     this.iterator = this.iterator - 2;
                     return await stepContext.replaceDialog(DISPLAY_COURSE_DIALOG);
                 } else {
@@ -418,7 +419,7 @@ class MyBot {
         }
 
         if (stepContext.result.value === 'Next>>>') {
-            if (this.iterator === this.courses[this.searchCourseAccessor.index].length - 1) {
+            if (this.iterator === this.courses[this.courseSelect].length - 1) {
                 this.iterator = 0;
                 return await stepContext.endDialog();
             } else {
