@@ -380,13 +380,13 @@ class MyBot {
             }
         } else {
             await stepContext.context.sendActivity(`${ this.courses[this.courseSelect][this.iterator] }`);
+            return await stepContext.prompt(NAVIGATION_PROMPT, {
+                prompt: 'Choose step',
+                retryPrompt: 'Choose step form button',
+                choices: ['<<<Previous', 'Next>>>']
+            });
         }
 
-        return await stepContext.prompt(NAVIGATION_PROMPT, {
-            prompt: '',
-            retryPrompt: '',
-            choices: ['<<<Previous', 'Next>>>']
-        });
     }
 
     async loopCourse(stepContext) {
