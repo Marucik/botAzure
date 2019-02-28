@@ -36,6 +36,8 @@ let content = [
     c = a*b
     c = ?
     `,
+    `Press next for correct answear`,
+    `c = 15`,
     `
     For the following code, which of the following statements is true?
 
@@ -47,7 +49,9 @@ let content = [
     b) Both printHello() and a refer to the same object.
     c) printHello() and a refer to different objects.
     d) Syntax error! You cannot assign function to a variable in Python.
-    `
+    `,
+    `Press next for answear`,
+    `a) printHello() is a function and a is a variable. None of them are objects.`
 ];
 
 module.exports = content;
