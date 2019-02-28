@@ -104,6 +104,21 @@ class MyBot {
             let check = turnContext.activity.text.toLowerCase();
 
             if (check === '/main') {
+                // await cpd.context.sendActivity('Dialog interupted');
+                // await cs.context.sendActivity('Dialog interupted');
+                // await dcrs.context.sendActivity('Dialog interupted');
+                if (dc.activeDialog) {
+                    await dc.context.sendActivity('Dialog interupted');
+                }
+                if (cpd.activeDialog) {
+                    await cpd.context.sendActivity('Dialog interupted');
+                }
+                if (cs.activeDialog) {
+                    await cs.context.sendActivity('Dialog interupted');
+                }
+                if (dcrs.activeDialog) {
+                    await dcrs.context.sendActivity('Dialog interupted');
+                }
                 dc.cancelAllDialogs();
                 cpd.cancelAllDialogs();
                 cs.cancelAllDialogs();
@@ -135,8 +150,9 @@ class MyBot {
                         `Your language is ${ dialogTurnResult.result.language } ` +
                         `and location: ${ dialogTurnResult.result.location } `);
                     await turnContext.sendActivity('Now you can test some commands:' +
-                                                    '\n/courses - Display courses list' +
                                                     '\n/main - Stops conversation end return to start' +
+                                                    '\n/help - Display help prompt' +
+                                                    '\n/courses - Display courses list' +
                                                     '\n/search - Searching for courses');
                 }
             }
@@ -184,6 +200,13 @@ class MyBot {
                     await cs.beginDialog(SEARCH_COURSE_DIALOG);
                     break;
                 case 'main':
+                    break;
+                case 'help':
+                    await turnContext.sendActivity('Now you can test some commands:' +
+                        '\n/main - Stops conversation end return to start' +
+                        '\n/help - Display help prompt' +
+                        '\n/courses - Display courses list' +
+                        '\n/search - Searching for courses');
                     break;
                 default:
                     await turnContext.sendActivity("Can't find any activities under this command");
